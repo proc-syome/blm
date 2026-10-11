@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="./favicon.png" type="image/png" />
+    <link rel="icon" href="./favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="./favicon.png" />
+    <title>blm — 黒魔道士のための小さな魔法</title>
+    <script>
+      // SpellSim などで選んだライト / ダークをここでも使う
+      try {
+        const t = localStorage.getItem("blm:theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+    <style>
+      /* ライト：ローズミルク / ダーク：プラム（SpellSim と同じ色） */
+      :root { --bg: #fbf5f6; --panel: #fffdfd; --text: #3b2a31; --muted: #7f6b74; --line: #f1e1e6; --accent: #b8507a; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) { --bg: #1e1922; --panel: #29222e; --text: #f2e9f0; --muted: #a99aab; --line: #3c3242; --accent: #e58fb3; color-scheme: dark; }
+      }
+      :root[data-theme="dark"] { --bg: #1e1922; --panel: #29222e; --text: #f2e9f0; --muted: #a99aab; --line: #3c3242; --accent: #e58fb3; color-scheme: dark; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+      main { max-width: 40rem; margin: 0 auto; padding: 40px 16px; }
+      h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: 0.02em; }
+      .sub { color: var(--muted); margin: 0 0 28px; font-size: 14px; }
+      .tools { display: grid; gap: 10px; }
+      a.tool { display: block; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: var(--text); text-decoration: none; }
+      a.tool:hover { border-color: var(--accent); }
+      a.tool strong { font-size: 17px; }
+      a.tool small { margin-left: 6px; color: var(--muted); font-size: 12px; font-weight: 500; }
+      a.tool span { display: block; color: var(--muted); font-size: 13px; }
+      footer { margin-top: 44px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+      footer p { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>blm</h1>
+      <p class="sub">黒魔道士のための、小さな魔法を置いています。</p>
+      <div class="tools">
+        <a class="tool" href="./spellsim/">
+          <strong>SpellSim</strong><small>patch 7.5x</small>
+          <span>黒魔道士の回しを、1手ずつ組み立てて確かめられます。</span>
+        </a>
+      </div>
+      <footer>
+        <p>自分用に作った、非公式のファンサイトです。</p>
+        <p>© SQUARE ENIX</p>
+      </footer>
+    </main>
+  </body>
+</html>

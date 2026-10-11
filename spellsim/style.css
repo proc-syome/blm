@@ -1,0 +1,534 @@
+/* SpellSim の見た目。上から：色 → 土台 → 設定バー → 表 → 選択欄 → 状態の列 → タイムライン → スマホ → 動きを減らす設定 */
+
+/* ===== 色（ライト：ローズミルク / ダーク：プラム） =====
+   端末の設定に合わせ、右上のボタンで切り替えたらそれを優先（data-theme） */
+:root {
+  --bg: #fbf5f6;
+  --panel: #fffdfd;
+  --text: #3b2a31;
+  --muted: #7f6b74;
+  --line: #f1e1e6;
+  --accent: #b8507a;
+  /* アクセントの上の文字 */
+  --on-accent: #ffffff;
+  --soft: color-mix(in srgb, var(--accent) 10%, transparent);
+  --bad: #d93a3a;
+  --bad-soft: #fde4e4;
+  --shadow: 0 1px 2px rgba(20, 16, 40, 0.04);
+
+  /* ゲーム内の要素 */
+  --fire: #e8622c;
+  --ice: #2f8fd8;
+  --heart: #8fc9f2;
+  --poly: #f07ab4;
+  --mp: #e0457b;
+  --ent: #b49ce8;
+  --dot: #8b62d9;
+  /* アストラルソウル 6 個の光（明るい背景では白が見えないので金色寄り） */
+  --as-glow: 255, 196, 40;
+  /* 動ける手の帯 */
+  --mv: #f3dce4;
+  /* 選択肢の印（E・T）、H の水色、N の詠唱の背景（ピンク） */
+  --mark: #c04fc8;
+  --h-tint: 90, 185, 240;
+  --n-tint: 240, 130, 175;
+  /* 開いた一覧は表と見分けがつくよう少し色を付ける */
+  --menu-bg: #fdf0f4;
+  --menu-line: #f0c6d4;
+  /* タイムラインの種類 */
+  --k-gimmick: #e0564f;
+  --k-move: #e39a2a;
+  --k-burst: #a64ad6;
+  --k-memo: #7d8796;
+
+  /* 1手の行の高さ（選択欄の高さ） */
+  --row: 30px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1e1922;
+    --panel: #29222e;
+    --text: #f2e9f0;
+    --muted: #a99aab;
+    --line: #3c3242;
+    --accent: #e58fb3;
+  --on-accent: #2a1621;
+    --on-accent: #2a1621;
+    --bad-soft: #4a1d2a;
+    --as-glow: 255, 243, 180;
+    --mv: #5a4a5c;
+    --menu-bg: #352b3b;
+    --menu-line: #5a4560;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1e1922;
+  --panel: #29222e;
+  --text: #f2e9f0;
+  --muted: #a99aab;
+  --line: #3c3242;
+  --accent: #e58fb3;
+  --on-accent: #2a1621;
+  --bad-soft: #4a1d2a;
+  --as-glow: 255, 243, 180;
+  --mv: #5a4a5c;
+  --menu-bg: #352b3b;
+  --menu-line: #5a4560;
+  color-scheme: dark;
+}
+
+/* ===== 土台 ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  /* ドラッグで文字や画像が選択されて青くならないようにする（入力欄の中は選べる） */
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; }
+img { -webkit-user-drag: none; user-drag: none; }
+
+header.top { padding: 16px 16px 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+/* ライト / ダークの切り替え */
+.themetoggle {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; margin-top: 2px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+}
+.themetoggle:hover { color: var(--text); border-color: var(--accent); }
+.themetoggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+header.top h1 { margin: 0; font-size: 20px; letter-spacing: 0.02em; }
+header.top h1 small { font-size: 12px; color: var(--muted); font-weight: 500; }
+header.top .sub { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+main { padding: 8px 16px 16px; }
+.foot { padding: 16px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.foot p { margin: 0; }
+/* 画面を広げても列が離れすぎないよう幅に上限（タイムラインの列のぶん --tlw だけ広げる） */
+header.top, main, .foot {
+  max-width: calc(1380px + var(--tlw, 0px)); margin-left: auto; margin-right: auto;
+  transition: max-width 0.2s ease-out;
+}
+/* 詳細列を出すときは上限なし */
+body.wide header.top, body.wide main, body.wide .foot { max-width: none; }
+
+button {
+  font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text);
+  border-radius: 8px; padding: 4px 12px; cursor: pointer; transition: border-color 0.12s, background-color 0.12s, color 0.12s;
+}
+button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+button.primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; z-index: 10;
+}
+
+/* 確認のメッセージボックス */
+.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 10, 16, 0.35); }
+.modal .box {
+  width: 22em; max-width: 100%; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); padding: 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.modal .msg { margin: 0; font-weight: 600; }
+.modal .skip { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; cursor: pointer; }
+.modal .btns { display: flex; justify-content: flex-end; gap: 8px; }
+button.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+button.danger:hover { background: color-mix(in srgb, var(--bad) 88%, #000); }
+
+/* ===== 設定バー ===== */
+.settings {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow);
+  padding: 10px 12px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 3;
+}
+.settings .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.settings .spacer { flex: 1; }
+/* 設定（開閉できる） */
+.settings .opts { border-top: 1px solid var(--line); padding-top: 6px; }
+.settings .opts summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--muted); width: fit-content; }
+.settings .opts summary:hover { color: var(--text); }
+.settings .optlist { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 8px; }
+.settings .regen { display: inline-flex; gap: 8px; align-items: center; }
+.settings button.shift { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* 進んでいる間は、進むたびに小さな点がふわっと光る。止めている間は点を消して枠を強める */
+.settings button.shift .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.settings button.shift.live .dot { animation: live-dot 0.5s ease-out; }
+.settings button.shift.paused { border-color: var(--accent); color: var(--text); }
+.settings button.shift.paused .dot { background: transparent; box-shadow: inset 0 0 0 1px var(--muted); }
+@keyframes live-dot { from { opacity: 0.2; transform: scale(1.6); } }
+.settings label.num { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.settings input[type="number"] { width: 72px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+.settings .chk { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); cursor: pointer; }
+.settings .chk:hover { color: var(--text); }
+/* レベルの切り替え（つながったボタン） */
+.level { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.level button { border: 0; border-radius: 0; padding: 4px 10px; font-weight: 600; color: var(--muted); background: var(--panel); }
+.level button + button { border-left: 1px solid var(--line); }
+.level button.on { background: var(--accent); color: var(--on-accent); }
+.level button:not(.on):hover { color: var(--text); background: var(--soft); }
+.warn { color: var(--bad); margin: 8px 0 0; font-weight: 600; }
+
+/* ===== 表 ===== */
+.tablewrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); }
+table.rot { border-collapse: collapse; width: 100%; min-width: 980px; }
+.rot th, .rot td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; vertical-align: middle; }
+.rot th { position: sticky; top: 0; background: var(--panel); font-size: 11px; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; z-index: 1; }
+.rot tbody tr:hover td { background: color-mix(in srgb, var(--accent) 3%, transparent); }
+.rot tr.invalid td { background: var(--bad-soft); }
+.rot td.no { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; width: 2.5em; }
+.rot td.time { font-variant-numeric: tabular-nums; font-weight: 600; }
+.rot td.time small { color: var(--muted); font-weight: 400; }
+td.ops { white-space: nowrap; }
+/* ＋・時計・× は同じ高さにそろえる */
+td.ops button {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  height: 23px; min-width: 24px; padding: 0 5px; margin-left: 2px; color: var(--muted);
+}
+.clock { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+
+/* イベント行（待ち時間だけ）：斜線の背景で、攻撃しない時間だと分かるように */
+.rot tr.wait td:not(.tl):not(.mv) {
+  background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--muted) 9%, transparent) 6px 8px);
+}
+.waitbox { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.waitbox .wlabel { font-weight: 600; color: var(--muted); }
+.waitbox input { width: 5.2em; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); font: inherit; text-align: right; }
+.waitbox .wunit { color: var(--muted); }
+.waitbox .wend { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.waitbox .wend small { font-size: 10px; }
+
+/* 動ける手（詠唱なし）の縦の帯。続く手どうしは行の線を越えてつなげる */
+.rot th.mvh, .rot td.mv { width: 10px; min-width: 10px; padding: 0; }
+.rot td.mv { position: relative; }
+.mvbar { position: absolute; left: 2px; width: 6px; top: -1px; bottom: -1px; background: var(--mv); }
+.rot td.mv.start .mvbar { top: 4px; border-top-left-radius: 3px; border-top-right-radius: 3px; }
+.rot td.mv.end .mvbar { bottom: 4px; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
+.rot tr:last-child td.mv .mvbar { bottom: 4px; }
+
+/* DoT：残り時間（30 秒を満タン）のバー。選んだ敵は枠を強調、切れたら枠を赤く点滅 */
+.tgtbox { display: flex; gap: 2px; }
+.dotchip {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 18px; padding: 0; line-height: 1; overflow: hidden; border-radius: 5px;
+}
+.tgtbox .dotchip:only-child { width: 44px; }
+.dotchip .fill { position: absolute; inset: 0 auto 0 0; width: calc(var(--p) * 100%); background: var(--dot); opacity: 0.75; }
+.dotchip .n { position: relative; font-size: 11px; font-weight: 700; color: var(--text); text-shadow: 0 0 2px var(--panel); }
+.dotchip.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.dotchip:disabled { cursor: default; }
+.dotchip:disabled:hover { border-color: var(--line); }
+.dotchip.expired, .dotchip.expired:disabled:hover { border-color: var(--bad); animation: dot-expired 1s ease-in-out infinite; }
+@keyframes dot-expired {
+  0%, 100% { box-shadow: 0 0 0 1px var(--bad); }
+  50% { box-shadow: 0 0 0 1px transparent; border-color: transparent; }
+}
+
+/* アビリティは2列（1つ目・2つ目）。幅は固定して、列がそろうようにする */
+td.ab1, td.ab2 { width: 12.4em; }
+td.ab1 .pickwrap, td.ab2 .pickwrap { min-width: 0; }
+td.ab1 button.pick, td.ab2 button.pick { width: 12.4em; min-width: 0; }
+
+/* ===== 選択欄（アイコン付きのプルダウン） ===== */
+.pickwrap { display: flex; align-items: center; min-width: 0; }
+.iconbox { width: 22px; height: 22px; flex: none; display: inline-flex; position: relative; }
+.icon { width: 100%; height: 100%; border-radius: 5px; flex: none; }
+.noicon { width: 100%; height: 100%; border-radius: 5px; border: 1px dashed var(--line); }
+/* アイコンの無いもの（薬など）・読み込めないものは、頭の文字を枠に入れて代わりにする */
+.alt {
+  display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+  font-size: 10px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); overflow: hidden;
+}
+button.pick {
+  display: inline-flex; align-items: center; gap: 6px; height: var(--row); padding: 0 6px 0 4px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text);
+  text-align: left; white-space: nowrap; transition: border-color 0.12s, background-color 0.12s, box-shadow 0.12s;
+}
+button.pick:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: var(--panel); }
+button.pick.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--soft); background: var(--panel); }
+button.pick .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+button.pick.empty .name, button.pick.discouraged .name { color: var(--muted); }
+button.pick.bad { border-color: var(--bad); }
+button.pick.bad .name { color: var(--bad); }
+button.pick .caret {
+  width: 7px; height: 7px; flex: none; margin: 0 2px 3px 2px; opacity: 0.55;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg);
+}
+button.pick.open .caret { transform: rotate(-135deg); margin: 3px 2px 0 2px; }
+button.pick.action { width: 11.8em; }
+/* H を選んでいる欄は薄い水色 */
+button.pick.m-h { background: color-mix(in srgb, rgb(var(--h-tint)) 14%, var(--bg)); }
+button.pick.m-h:hover { background: color-mix(in srgb, rgb(var(--h-tint)) 18%, var(--panel)); }
+
+/* 右端の印：E は玉1つ、T は玉3つ、P とハイサンダー系は将棋の駒の形 */
+.modemark { width: 14px; height: 14px; flex: none; fill: var(--mark); }
+.modemark.mm-P { stroke-width: 1; stroke-linejoin: round; }
+.modemark.pr-thunder { fill: #5cc4f2; stroke: #2f9fd8; }
+.modemark.pr-fire { fill: #fbe58c; stroke: #c9a227; }
+td.ab1 .modemark, td.ab2 .modemark, td.act button.pick .modemark { margin-left: -2px; }
+
+/* 開いた一覧 */
+.pickmenu {
+  position: fixed; z-index: 30; overflow-y: auto; padding: 4px; outline: none;
+  background: var(--menu-bg); border: 1px solid var(--menu-line); border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(20, 16, 40, 0.28), 0 3px 8px rgba(20, 16, 40, 0.12);
+  animation: menu-in 0.12s ease-out;
+}
+.pickmenu:focus-visible { outline: none; }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-3px); } }
+.pickmenu .opt {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px;
+  padding: 4px 8px 4px 5px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+}
+.pickmenu .opt > :not(.castfill) { position: relative; }
+.pickmenu .opt .iconbox { width: 24px; height: 24px; }
+.pickmenu .opt .name { flex: 1; }
+.pickmenu .opt.active { background: var(--soft); }
+/* 一覧の H は、詠唱の背景が埋まっていない間もごく薄い水色を敷いて N と見分けられるようにする */
+.pickmenu .opt.m-h { background: rgba(var(--h-tint), 0.06); }
+.pickmenu .opt.m-h.active { background: color-mix(in srgb, rgba(var(--h-tint), 0.12), var(--soft)); }
+.pickmenu .opt.sel { font-weight: 700; }
+.pickmenu .opt.discouraged .name { color: var(--muted); }
+.pickmenu .opt.invalid { cursor: default; }
+.pickmenu .opt.invalid .name { color: var(--bad); }
+/* 並び：名前 → 札 → ✓ → E/T/P の印（一番右） */
+.pickmenu .opt .tag { order: 1; }
+.pickmenu .opt.sel::after { content: "✓"; color: var(--accent); font-size: 12px; order: 2; }
+.pickmenu .opt .modemark { order: 3; }
+.pickmenu .tag { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; }
+.pickmenu .tag.bad { color: var(--bad); border-color: var(--bad); }
+/* N・H の詠唱時間を背景で見せる（左から右へ埋まる。動きは picker.ts） */
+.castfill {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; transform-origin: left center;
+  background: linear-gradient(90deg, rgba(var(--n-tint), 0.10), rgba(var(--n-tint), 0.26));
+}
+.castfill.h { background: linear-gradient(90deg, rgba(var(--h-tint), 0.10), rgba(var(--h-tint), 0.28)); }
+
+/* 名前を隠す設定：アイコンだけ見せる。E・T・P の印はアイコンの横に出す（N は何もなし、H は水色の背景） */
+body.icons-only button.pick { width: auto !important; gap: 3px; padding: 0 4px 0 3px; }
+body.icons-only button.pick .name { display: none; }
+body.icons-only td.ab1, body.icons-only td.ab2 { width: auto; }
+body.icons-only .pickwrap.bad .alt { color: var(--bad); border-color: var(--bad); }
+
+/* ===== 状態の列 ===== */
+/* MP・エレメンタルの横棒 */
+.mp, .ent { display: flex; align-items: center; gap: 6px; }
+.bar { width: 72px; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.mp .fill { height: 100%; background: var(--mp); }
+.ent .fill { height: 100%; background: var(--ent); }
+.mp .num, .ent .num { font-variant-numeric: tabular-nums; min-width: 3.2em; text-align: right; }
+.ent.off { color: var(--muted); }
+
+/* ゲージ（上段）とパラドックス＋エレメンタル（下段）を1つのセルに、行の高さに収める。
+   AF/UB のひし形とエレメンタルのバーの左端をそろえ、パラドックスはその左に出っ張らせる */
+.stack2 {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  height: var(--row); gap: 2px; padding-left: 16px;
+}
+.stack2 > * { height: calc((var(--row) - 2px) / 2); }
+.stack2 .ent { font-size: 11px; line-height: 1; gap: 4px; }
+.stack2 .ent .bar { height: 6px; }
+.stack2 .ent .num { min-width: 0; text-align: left; }
+.elem { display: flex; align-items: center; gap: 6px; margin-left: -16px; }
+/* パラドックス：回したひし形なので、135deg で画面上の上→下のグラデーションになる */
+.paradox { width: 10px; height: 10px; border-radius: 2px; transform: rotate(45deg); flex: none; background: var(--line); }
+.paradox.on { background: linear-gradient(135deg, #d8306e 0%, #b35fe0 50%, #2a2cff 100%); }
+
+.gauge { display: flex; align-items: center; gap: 8px; }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); display: inline-block; }
+.pips.af i.on { background: var(--fire); transform: rotate(45deg); border-radius: 2px; }
+.pips.ub i.on { background: var(--ice); transform: rotate(45deg); border-radius: 2px; }
+/* アンブラルハート・ポリグロットはひし形 */
+.pips.uh i, .pips.pg i { border-radius: 2px; transform: rotate(45deg); }
+.pips.uh i { width: 8px; height: 8px; }
+.pips.uh i.on { background: var(--heart); }
+.pips.pg i.on { background: var(--poly); }
+/* アストラルソウル。6 個たまったら色はそのままで文字の外側だけ光らせる */
+.as { color: var(--fire); font-size: 12px; font-weight: 600; }
+.as.full { animation: as-glow 1.6s ease-in-out infinite; }
+@keyframes as-glow {
+  0%, 100% { text-shadow: 0 0 2px rgba(var(--as-glow), 0.35); }
+  50% { text-shadow: 0 0 3px rgba(var(--as-glow), 0.9), 0 0 7px rgba(var(--as-glow), 0.75); }
+}
+
+.procs { display: flex; gap: 4px; align-items: center; }
+.procs .proc { display: inline-flex; }
+.procs .modemark { width: 18px; height: 18px; }
+
+/* 詳細列（アビリティのリキャスト） */
+td.cd { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+td.cd.ready { color: var(--text); }
+td.cd span { margin-right: 4px; }
+td.cd .eff { color: var(--accent); font-weight: 700; }
+td.cd .st { color: var(--fire); }
+
+/* ===== タイムライン・メモ ===== */
+.k-gimmick { --k: var(--k-gimmick); }
+.k-move { --k: var(--k-move); }
+.k-burst { --k: var(--k-burst); }
+.k-memo { --k: var(--k-memo); }
+
+/* 見出し：列ごとに「×」、列の左端に「+」（間に挿入）。帯の列と同じ幅・間隔で並べる。マウスを乗せたときだけはっきり出す */
+.rot th.tlh { font-size: 11px; padding: 0; position: relative; z-index: 2; }
+.lanehead { display: grid; grid-template-columns: repeat(var(--lanes), minmax(0, 1fr)) 1.4em; gap: 2px; padding: 0 2px; height: 26px; align-items: center; }
+.lanehead.empty { display: flex; gap: 4px; padding: 0 6px; }
+.lanehead .lh { min-width: 0; position: relative; display: flex; justify-content: flex-end; align-items: center; height: 100%; border-radius: 4px; }
+.lanehead .lh:not(.tail) { background: color-mix(in srgb, var(--line) 50%, transparent); }
+.lanehead .lh.tail { justify-content: center; }
+.lanehead button { padding: 0 4px; font-size: 11px; line-height: 16px; color: var(--muted); border-color: transparent; background: transparent; }
+.lanehead button:hover { color: var(--accent); border-color: var(--accent); background: var(--panel); }
+.lanehead .rm:hover { color: var(--bad); border-color: var(--bad); }
+.lanehead .lh .ins { position: absolute; left: -8px; top: 50%; transform: translateY(-50%); z-index: 1; }
+.lanehead .lh.tail .ins, .lanehead .ins.solo { position: static; transform: none; }
+.lanehead:not(.empty) button { opacity: 0.35; transition: opacity 0.15s; }
+.rot th.tlh:hover .lanehead button { opacity: 1; }
+
+/* 表のセル。帯は絶対配置なので、幅は空の箱（.tlsp）で確保し、列が増減したら少しずつ変える */
+.rot td.tl { padding: 0; position: relative; }
+.tlsp { width: calc(var(--lanes) * var(--lane-w, 4.5em) + 1.6em); min-width: 2.2em; height: 1px; }
+.tlsp.anim { animation: tl-width 0.2s ease-out; }
+@keyframes tl-width { from { width: calc(var(--from) * var(--lane-w, 4.5em) + 1.6em); } }
+/* 見出しの右端：つかんで列の幅を変える */
+.lanegrip { position: absolute; top: 0; bottom: 0; right: -4px; width: 8px; cursor: col-resize; z-index: 2; touch-action: none; }
+.lanegrip:hover, body.widening .lanegrip { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+body.widening, body.widening * { cursor: col-resize !important; user-select: none; }
+/* 列はグリッドで幅を固定する（帯の枠線の有無で列の位置がずれないように） */
+.lanes { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--lanes), minmax(0, 1fr)) 1.4em; gap: 2px; padding: 0 2px; }
+.lane { min-width: 0; position: relative; }
+.lane.empty { cursor: copy; border-radius: 3px; }
+.lane.empty:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.rot td.tl.none .lanes:empty { cursor: copy; }
+.lane.mark { cursor: grab; border-left: 3px solid var(--k); touch-action: none; background: color-mix(in srgb, var(--k) 16%, transparent); }
+.lane.first { border-top-right-radius: 4px; margin-top: 2px; }
+.lane.last { border-bottom-right-radius: 4px; margin-bottom: 2px; }
+/* 文字は最初の行に置き、印の続く行の高さまで下へはみ出して書く */
+.lane .lbl {
+  position: absolute; left: 4px; right: 2px; top: 2px; z-index: 1; font-size: 11px; line-height: 1.3; font-weight: 600;
+  color: var(--text); overflow: hidden; white-space: pre-line; max-height: calc(var(--rows, 1) * (var(--row) + 9px) - 6px); word-break: break-all;
+}
+/* 右端の「+」：一番右の列に印がある行だけ */
+.lane.add { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; border-radius: 4px; opacity: 0; }
+.lane.add.on { cursor: copy; }
+.rot td.tl:hover .lane.add.on { opacity: 1; }
+.lane.add.on:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+/* 上端・下端のつかむ所、ドラッグ中 */
+.grip { position: absolute; left: 0; right: 0; height: 7px; cursor: ns-resize; z-index: 2; touch-action: none; }
+.grip.top { top: -2px; }
+.grip.bottom { bottom: -2px; }
+.grip:hover, body.resizing .grip { background: color-mix(in srgb, var(--k) 45%, transparent); }
+body.resizing, body.resizing * { cursor: ns-resize !important; user-select: none; }
+body.moving, body.moving * { cursor: grabbing !important; user-select: none; }
+body.moving .lane.mark { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--k) 50%, transparent); }
+
+/* 設定の下の編集一覧 */
+.tl-edit { margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.tl-edit summary { cursor: pointer; font-weight: 600; }
+.tl-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.tl-item { display: flex; gap: 6px; align-items: center; }
+.tl-item input.t { width: 5.5em; font-variant-numeric: tabular-nums; }
+.tl-item textarea.text { flex: 1; min-width: 6em; }
+.tl-item select.kind { border-left: 4px solid var(--k); }
+.tl-item .del { padding: 0 8px; color: var(--muted); }
+.tl-foot { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tl-foot .hint { color: var(--muted); font-size: 12px; }
+
+/* 印をその場で編集する吹き出し */
+.tlpop {
+  position: absolute; z-index: 20; width: 26em; max-width: calc(100vw - 16px);
+  background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--k); border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); padding: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+.tlpop .row { display: flex; gap: 6px; align-items: center; }
+.tlpop textarea.text { width: 100%; }
+.tlpop .spacer { flex: 1; }
+.tlpop input.t { width: 4.8em; font-variant-numeric: tabular-nums; }
+.tlpop select.kind { flex: none; width: 6.5em; }
+.tlpop .del { color: var(--muted); padding: 2px 8px; }
+.tlpop .del:hover { color: var(--bad); border-color: var(--bad); }
+.tlpop .ok { padding: 2px 10px; }
+
+/* 一覧と吹き出しで共通の入力欄 */
+.tl-item input, .tl-item select, .tl-item textarea, .tlpop input, .tlpop select, .tlpop textarea {
+  font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text);
+}
+/* 内容は複数行（Shift+Enter で改行）。高さは中身に合わせて伸びる */
+.tl-item textarea, .tlpop textarea { resize: none; line-height: 1.4; overflow: hidden; display: block; }
+.tl-item .sep, .tlpop .sep { color: var(--muted); }
+
+/* ===== スマホ：1手をカードにして縦に並べる ===== */
+@media (max-width: 640px) {
+  /* スマホ：1手を1枚のカードに。タイムラインは出さない
+     1段目：# 時間 DoT プロック ………… ＋×
+     2段目：アクション
+     その下：左にアビリティ（1〜2段、右へ字下げ）、右にゲージ（AF/UB・パラドックス・エレメンタル）→ MP → ポリグロット */
+  :root { --row: 36px; }
+  main { padding: 8px; }
+  .settings { position: static; }
+  .tl-edit, .rot td.tl, .rot th.tlh { display: none; }
+  .tablewrap { overflow: visible; border: 0; background: transparent; }
+  table.rot, .rot tbody { display: block; min-width: 0; }
+  .rot thead { display: none; }
+  .rot tr {
+    display: grid;
+    /* 列の幅は固定（どのカードでもゲージの位置がそろう）。2体目の敵を出すと DoT の列が広がり、その右の余白を詰める */
+    grid-template-columns: 1.6em 74px var(--tgts-w, 44px) var(--tgts-sp, 36px) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "no  time tgts procs procs ops"
+      "act act  act  act   act   act"
+      "ab1 ab1  ab1  ab1   gauge gauge"
+      "ab2 ab2  ab2  ab2   mp    mp"
+      "ab2 ab2  ab2  ab2   pg    pg";
+    gap: 4px 8px; align-items: center;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 6px 8px; margin-bottom: 6px;
+  }
+  .rot td { border: 0; padding: 0; min-width: 0; height: auto; }
+  .rot tbody tr:hover td { background: transparent; }
+  .rot td.no { grid-area: no; width: auto; text-align: left; }
+  .rot td.time { grid-area: time; }
+  .rot td.tgts { grid-area: tgts; }
+  .rot:has(.dotchip + .dotchip) tr { --tgts-w: 62px; --tgts-sp: 18px; }
+  .rot td.procc { grid-area: procs; }
+  .rot td.ops { grid-area: ops; }
+  .rot td.act { grid-area: act; }
+  /* アビリティはアクションより右へ字下げ */
+  .rot td.ab1 { grid-area: ab1; }
+  .rot td.ab2 { grid-area: ab2; align-self: start; }
+  .rot td.ab1, .rot td.ab2 { width: auto; padding-left: 16px; }
+  .rot td.ab1:empty, .rot td.ab2:empty { display: none; }
+  .rot td.ab1 .pickwrap, .rot td.ab2 .pickwrap { flex: 1; }
+  .rot td.gaugec { grid-area: gauge; }
+  .rot td.mpc { grid-area: mp; padding-left: 16px; }
+  .rot td.pgc { grid-area: pg; padding-left: 17px; }
+  .rot td.cd { display: none; }
+  /* イベント行の斜線はカード全体に */
+  .rot tr.wait td:not(.tl):not(.mv) { background: none; }
+  .rot tr.wait {
+    background: repeating-linear-gradient(135deg, var(--panel) 0 6px, color-mix(in srgb, var(--muted) 9%, var(--panel)) 6px 8px);
+  }
+  /* 動ける手は、縦の列の代わりにカードの左端に帯 */
+  .rot td.mv, .rot th.mvh { display: none; }
+  .rot tr:has(td.mv.on) { box-shadow: inset 4px 0 0 var(--mv); }
+  .pickwrap { min-width: 0; }
+  button.pick { width: 100% !important; min-width: 0; }
+  /* MP のバーはエレメンタルのバーと同じ長さに */
+  .stack2 .ent .bar, .rot td.mpc .bar { width: 72px; }
+  .rot td.mpc .mp { gap: 6px; font-size: 13px; }
+  .rot td.mpc .mp .num { min-width: 0; text-align: left; }
+  .rot .iconbox { width: 20px; height: 20px; }
+}
+
+/* ===== 動きを減らす設定 ===== */
+@media (prefers-reduced-motion: reduce) {
+  header.top, main, .foot { transition: none; }
+  .pickmenu, .tlsp.anim { animation: none; }
+  .dotchip.expired { animation: none; box-shadow: 0 0 0 1px var(--bad); }
+  .settings button.shift.live .dot { animation: none; }
+  .as.full { animation: none; text-shadow: 0 0 3px rgba(var(--as-glow), 0.9), 0 0 7px rgba(var(--as-glow), 0.6); }
+}
