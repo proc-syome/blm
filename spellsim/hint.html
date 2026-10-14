@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="../favicon.png" type="image/png" />
+    <link rel="icon" href="../favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="../favicon.png" />
+    <title>SpellSim のヒント</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script>
+      // 前に選んだライト / ダークを、描く前に当てる（ちらつき防止）
+      try {
+        const t = localStorage.getItem("blm:theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <!-- SpellSim のヒント：黒魔道士・FF14 の仕組みのうち、回しを組むときに知っておくとよいこと（硬直など）。
+         SpellSim の計算の仕組みの話はしない。ゲームを始めたばかりの人が読んで7割わかるくらいに短く（docs/仕様.md 3.1） -->
+    <header class="top">
+      <div>
+        <h1>SpellSim のヒント</h1>
+        <p class="sub"><a href="./">← SpellSim に戻る</a></p>
+      </div>
+    </header>
+    <main class="guide">
+      <section>
+        <h2>詠唱の無い魔法とアビリティには「硬直」があります</h2>
+        <p>
+          アビリティや、詠唱の無い魔法（迅速魔をかけた魔法やゼノグロシーなど）を使うと、そのあと<strong>約 0.67 秒</strong>は次の行動ができません。これを硬直といいます。
+        </p>
+      </section>
+
+      <section>
+        <h2>硬直中に押した操作は受け付けられます</h2>
+        <p>
+          硬直のあいだに次のアビリティを押しても、ちゃんと受け付けられて、硬直が終わるとすぐに出ます（先行入力）。受け付けられるのは1つだけです。
+        </p>
+      </section>
+
+      <section>
+        <h2>詠唱した魔法のあとは 0.1 秒</h2>
+        <p>詠唱バーが出る魔法は、詠唱が終わってから<strong>約 0.1 秒</strong>だけ次の行動ができません。</p>
+      </section>
+    </main>
+    <footer class="foot">
+      <p>自分用に作った、非公式のファンサイトです。</p>
+      <p>© SQUARE ENIX</p>
+    </footer>
+    <script type="module">
+      import { mountThemeToggle } from "./ui/theme.js";
+      mountThemeToggle();
+    </script>
+  </body>
+</html>
